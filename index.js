@@ -1,6 +1,8 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import OpenAI from "openai";
 
+const ALLOWED_CHANNEL_ID = "1458338484749340744";
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -24,6 +26,12 @@ client.on("messageCreate", async (message) => {
   // ❌ Ignore bots
   if (message.author.bot) return;
 
+  // ❌ Only allow one channel
+  if (message.channel.id !== ALLOWED_CHANNEL_ID) return;
+
+  // ❌ Ignore empty / tiny messages
+  if (!message.content || message.content.length < 2) return;
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -33,10 +41,16 @@ client.on("messageCreate", async (message) => {
       ]
     });
 
-    await message.reply(completion.choices[0].message.content);
+    const reply = completion.choices?.[0]?.message?.content;
+
+    if (!reply) {
+      return message.reply("⚠️ AI returned empty response.");
+    }
+
+    await message.reply(reply);
   } catch (err) {
-    console.error(err);
-    message.reply("⚠️ AI brain crashed, try again.");
+    console.error("OPENAI ERROR:", err);
+    message.reply("⚠️ AI brain crashed. Check logs.");
   }
 });
 
