@@ -18,6 +18,10 @@ client.once("ready", () => {
 });
 
 client.on("messageCreate", async (message) => {
+  // ❌ Ignore DMs
+  if (!message.guild) return;
+
+  // ❌ Ignore bots
   if (message.author.bot) return;
 
   try {
@@ -29,7 +33,7 @@ client.on("messageCreate", async (message) => {
       ]
     });
 
-    message.reply(completion.choices[0].message.content);
+    await message.reply(completion.choices[0].message.content);
   } catch (err) {
     console.error(err);
     message.reply("⚠️ AI brain crashed, try again.");
